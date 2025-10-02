@@ -1,18 +1,22 @@
 import sys
 import argparse 
-from hgraph import *
-from rdkit import Chem
+from hgraph.mol_graph import MolGraph
+# from rdkit import Chem
 from multiprocessing import Pool
 
 def process(data):
     vocab = set()
     for line in data:
         s = line.strip("\r\n ")
-        hmol = MolGraph(s)
-        for node,attr in hmol.mol_tree.nodes(data=True):
+        try:
+            hmol = MolGraph(s)
+        except Exception as e:
+            print(f"Skipping problematic SMILES-rdkit_KekulizeException: {s} ({e})", file=sys.stderr)
+            continue
+        for _, attr in hmol.mol_tree.nodes(data=True):
             smiles = attr['smiles']
             vocab.add( attr['label'] )
-            for i,s in attr['inter_label']:
+            for _,s in attr['inter_label']:
                 vocab.add( (smiles, s) )
     return vocab
 
