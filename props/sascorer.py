@@ -22,7 +22,7 @@ from rdkit.Chem import rdMolDescriptors
 import pickle
 
 import math
-from collections import defaultdict
+# from collections import defaultdict
 
 import os.path as op
 

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from hgraph.nnutils import *
+from hgraph.nnutils import index_select_ND, index_scatter
 
 class GRU(nn.Module):
 

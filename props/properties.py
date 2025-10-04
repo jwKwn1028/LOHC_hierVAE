@@ -1,4 +1,3 @@
-import rdkit
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from rdkit.Chem import Descriptors
@@ -20,22 +19,27 @@ def similarity(a, b):
     return DataStructs.TanimotoSimilarity(fp1, fp2) 
 
 def drd2(s):
-    if s is None: return 0.0
+    if s is None: 
+        return 0.0
     if Chem.MolFromSmiles(s) is None:
         return 0.0
     return drd2_scorer.get_score(s)
 
 def qed(s):
-    if s is None: return 0.0
+    if s is None: 
+        return 0.0
     mol = Chem.MolFromSmiles(s)
-    if mol is None: return 0.0
+    if mol is None: 
+        return 0.0
     return QED.qed(mol)
 
 # Modified from https://github.com/bowenliu16/rl_graph_generation
 def penalized_logp(s):
-    if s is None: return -100.0
+    if s is None: 
+        return -100.0
     mol = Chem.MolFromSmiles(s)
-    if mol is None: return -100.0
+    if mol is None: 
+        return -100.0
 
     logP_mean = 2.4570953396190123
     logP_std = 1.434324401111988

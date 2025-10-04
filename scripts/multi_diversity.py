@@ -2,6 +2,8 @@ import sys
 import argparse
 import numpy as np
 
+from props import similarity
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_decode', type=int, default=20)
 parser.add_argument('--sim_delta', type=float, default=0.4)
@@ -12,11 +14,14 @@ parser.add_argument('--cond', type=str, default="1,0,1,0")
 args = parser.parse_args()
 
 if args.cond == '1,0,1,0':
-    f_success = lambda x,y: x >= args.qed_delta and y >= args.drd2_delta
+    def f_success(x, y):
+        return x >= args.qed_delta and y >= args.drd2_delta
 elif args.cond == '1,0,0,1':
-    f_success = lambda x,y: x >= args.qed_delta and y < args.drd2_delta
+    def f_success(x, y):
+        return x >= args.qed_delta and y < args.drd2_delta
 elif args.cond == '0,1,1,0':
-    f_success = lambda x,y: x < args.qed_delta and y >= args.drd2_delta
+    def f_success(x, y):
+        return x < args.qed_delta and y >= args.drd2_delta
 else:
     raise ValueError('condition not supported')
 

@@ -1,9 +1,10 @@
 import sys
-from props import *
+from props import similarity, qed
 
 for line in sys.stdin:
     x,y = line.split()[:2]
-    if y == "None": y = None
+    if y == "None": 
+        y = None
     sim2D = similarity(x, y)
     try:
         qq = qed(y)

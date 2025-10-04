@@ -1,15 +1,14 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.optim.lr_scheduler as lr_scheduler
-from torch.utils.data import DataLoader
+# import torch.nn as nn
+# import torch.optim as optim
+# import torch.optim.lr_scheduler as lr_scheduler
+# from torch.utils.data import DataLoader
 
-import math, random, sys
-import numpy as np
+import random
 import argparse
 from tqdm import tqdm
 
-from poly_hgraph import *
+from poly_hgraph import common_atom_vocab, MolGraph, PairVocab, HierVAE
 import rdkit
 
 lg = rdkit.RDLogger.logger() 

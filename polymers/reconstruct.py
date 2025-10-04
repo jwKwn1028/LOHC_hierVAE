@@ -1,17 +1,15 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.optim.lr_scheduler as lr_scheduler
+# import torch.nn as nn
+# import torch.optim as optim
+# import torch.optim.lr_scheduler as lr_scheduler
 from torch.utils.data import DataLoader
 
-import math, random, sys
-import numpy as np
+import random
 import argparse
-from tqdm import tqdm
+# from tqdm import tqdm
 
 import rdkit
-from rdkit import Chem
-from poly_hgraph import *
+from poly_hgraph import common_atom_vocab, MolGraph, PairVocab, HierVAE, MoleculeDataset
 
 lg = rdkit.RDLogger.logger() 
 lg.setLevel(rdkit.RDLogger.CRITICAL)

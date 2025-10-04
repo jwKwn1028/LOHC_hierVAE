@@ -15,11 +15,14 @@ n_mols = len(data) / args.num_decode
 assert len(data) % args.num_decode == 0
 
 if args.cond == '1,0,1,0':
-    f_success = lambda x,y: x >= args.qed_delta and y >= args.drd2_delta
+    def f_success(x, y):
+        return x >= args.qed_delta and y >= args.drd2_delta
 elif args.cond == '1,0,0,1':
-    f_success = lambda x,y: x >= args.qed_delta and y < args.drd2_delta
+    def f_success(x, y):
+        return x >= args.qed_delta and y < args.drd2_delta
 elif args.cond == '0,1,1,0':
-    f_success = lambda x,y: x < args.qed_delta and y >= args.drd2_delta
+    def f_success(x, y):
+        return x < args.qed_delta and y >= args.drd2_delta
 else:
     raise ValueError('condition not supported')
 

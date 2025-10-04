@@ -1,14 +1,13 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.optim.lr_scheduler as lr_scheduler
+# import torch.nn as nn
+# import torch.optim as optim
+# import torch.optim.lr_scheduler as lr_scheduler
 from torch.utils.data import DataLoader
 
-import math, random, sys
-import numpy as np
+import random
 import argparse
 
-from hgraph import *
+from hgraph import common_atom_vocab, HierVGNN, PairVocab, MolEnumRootDataset
 import rdkit
 
 lg = rdkit.RDLogger.logger() 
@@ -45,7 +44,7 @@ vocab = [x.strip("\r\n ").split() for x in open(args.vocab)]
 args.vocab = PairVocab(vocab) 
 
 if args.novi:
-    model = HierGNN(args).cuda()
+    model = HierVGNN(args).cuda()
 else:
     model = HierVGNN(args).cuda()
 

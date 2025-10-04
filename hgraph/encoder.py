@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-import rdkit.Chem as Chem
-import torch.nn.functional as F
-from hgraph.nnutils import *
+# import rdkit.Chem as Chem
+# import torch.nn.functional as F
+from hgraph.nnutils import index_select_ND, index_scatter
 from hgraph.mol_graph import MolGraph
 from hgraph.rnn import GRU, LSTM
 

@@ -1,7 +1,8 @@
-import torch
 from torch.utils.data import Dataset
 from rdkit import Chem
-import os, random, gc
+import os
+import random
+import gc
 import pickle
 
 from hgraph.chemutils import get_leaves
@@ -15,13 +16,15 @@ class MoleculeDataset(Dataset):
         for mol_s in data:
             hmol = MolGraph(mol_s)
             ok = True
-            for node,attr in hmol.mol_tree.nodes(data=True):
+            for _, attr in hmol.mol_tree.nodes(data=True):
                 smiles = attr['smiles']
                 ok &= attr['label'] in vocab.vmap
-                for i,s in attr['inter_label']:
+                for _, s in attr['inter_label']:
                     ok &= (smiles, s) in vocab.vmap
             if ok: 
                 safe_data.append(mol_s)
+
+# node, i variable is unused
 
         print(f'After pruning {len(data)} -> {len(safe_data)}') 
         self.batches = [safe_data[i : i + batch_size] for i in range(0, len(safe_data), batch_size)]
@@ -58,7 +61,8 @@ class MolEnumRootDataset(Dataset):
             for node,attr in hmol.mol_tree.nodes(data=True):
                 if attr['label'] not in self.vocab.vmap:
                     ok = False
-            if ok: safe_list.append(s)
+            if ok: 
+                safe_list.append(s)
         
         if len(safe_list) > 0:
             return MolGraph.tensorize(safe_list, self.vocab, self.avocab)
@@ -100,7 +104,8 @@ class DataFolder(object):
             with open(fn, 'rb') as f:
                 batches = pickle.load(f)
 
-            if self.shuffle: random.shuffle(batches) #shuffle data before batch
+            if self.shuffle: 
+                random.shuffle(batches) #shuffle data before batch
             for batch in batches:
                 yield batch
 

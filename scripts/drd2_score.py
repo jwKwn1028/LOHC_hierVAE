@@ -1,5 +1,5 @@
 import sys
-from props import *
+from props import similarity
 
 for line in sys.stdin:
     x,y = line.split()[:2]

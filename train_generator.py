@@ -2,16 +2,18 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
 
 import rdkit
-import math, random, sys
+import math
+import random
+import sys
 import numpy as np
 import argparse
 import os
 from tqdm.auto import tqdm
 
-from hgraph import *
+from hgraph import common_atom_vocab, PairVocab, HierVAE, DataFolder
 
 lg = rdkit.RDLogger.logger() 
 lg.setLevel(rdkit.RDLogger.CRITICAL)
@@ -77,8 +79,10 @@ if args.load_model:
 else:
     total_step = beta = 0
 
-param_norm = lambda m: math.sqrt(sum([p.norm().item() ** 2 for p in m.parameters()]))
-grad_norm = lambda m: math.sqrt(sum([p.grad.norm().item() ** 2 for p in m.parameters() if p.grad is not None]))
+def param_norm(m):
+    return math.sqrt(sum([p.norm().item() ** 2 for p in m.parameters()]))
+def grad_norm(m):
+    return math.sqrt(sum([p.grad.norm().item() ** 2 for p in m.parameters() if p.grad is not None]))
 
 meters = np.zeros(6)
 for epoch in range(args.epoch):

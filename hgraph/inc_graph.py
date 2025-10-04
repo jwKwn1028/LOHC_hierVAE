@@ -2,7 +2,7 @@ import torch
 import rdkit.Chem as Chem
 import networkx as nx
 from hgraph.mol_graph import MolGraph
-from hgraph.chemutils import *
+from hgraph.chemutils import get_sub_mol, sanitize, get_mol, copy_atom, atom_equal, get_anchor_smiles, bond_match, is_anchor
 from collections import defaultdict
 
 class IncBase(object):
@@ -46,7 +46,8 @@ class IncBase(object):
         self.bgraph[idx, :len(in_edges)] = self.fnode.new_tensor(in_edges)
 
         for k in self.graph.successors(j):
-            if k == i: continue
+            if k == i: 
+                continue
             nei_idx = self.edge_dict[(j,k)]
             self.bgraph[nei_idx, self.graph.in_degree(j) - 2] = idx
 
@@ -131,12 +132,14 @@ class IncGraph(IncBase):
                 atom_map[atom.GetIdx()] = idx
                 new_atoms.append(idx)
                 self.batch[batch_idx].append(idx)
-                if atom.GetAtomMapNum() > 0: attached.append(idx)
+                if atom.GetAtomMapNum() > 0: 
+                    attached.append(idx)
 
         for bond in emol.GetBonds():
             a1 = atom_map[bond.GetBeginAtom().GetIdx()]
             a2 = atom_map[bond.GetEndAtom().GetIdx()]
-            if a1 == a2: continue
+            if a1 == a2: 
+                continue
             bond_type = bond.GetBondType()
             existing_bond = self.mol.GetBondBetweenAtoms(a1, a2)
             if existing_bond is None:
@@ -217,7 +220,8 @@ class IncGraph(IncBase):
             attach_points = [atom.GetIdx() for atom in emol.GetAtoms() if atom.GetAtomMapNum() > 0]
 
         inter_size = len(attach_points)
-        idxfunc = lambda x:x.GetIdx()
+        def idxfunc(x):
+            return x.GetIdx()
         anchors = attach_points
 
         if inter_size == 1:

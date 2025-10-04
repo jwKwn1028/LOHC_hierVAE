@@ -19,7 +19,8 @@ def get_leaves(mol):
     leaf_rings = []
     for r in rings:
         inters = [c for c in clusters if r != c and len(r & c) > 0]
-        if len(inters) == 1: leaf_rings.extend( [i for i in r if mol.GetAtomWithIdx(i).GetDegree() == 2] )
+        if len(inters) == 1: 
+            leaf_rings.extend( [i for i in r if mol.GetAtomWithIdx(i).GetDegree() == 2] )
 
     return leaf_atoms + leaf_rings
 

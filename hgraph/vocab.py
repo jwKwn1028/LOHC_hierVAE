@@ -1,6 +1,4 @@
-import rdkit
 import rdkit.Chem as Chem
-import copy
 import torch
 
 class Vocab(object):
@@ -35,7 +33,8 @@ class PairVocab(object):
             idx = self.vmap[(h,s)]
             self.mask[hid, idx] = 1000.0
 
-        if cuda: self.mask = self.mask.cuda()
+        if cuda: 
+            self.mask = self.mask.cuda()
         self.mask = self.mask - 1000.0
             
     def __getitem__(self, x):

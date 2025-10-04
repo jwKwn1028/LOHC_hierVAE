@@ -1,11 +1,11 @@
 import torch
-import rdkit
 import rdkit.Chem as Chem
 import networkx as nx
 from hgraph.chemutils import get_mol, get_smiles, get_inter_label, set_atommap, get_assm_cands
 from hgraph.nnutils import create_pad_tensor
 
-add = lambda x,y : x + y if type(x) is int else (x[0] + y, x[1] + y)
+def add(x, y):
+    return x + y if type(x) is int else (x[0] + y, x[1] + y)
 
 class MolGraph(object):
 

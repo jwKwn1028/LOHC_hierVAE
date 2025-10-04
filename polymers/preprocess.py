@@ -1,16 +1,16 @@
 from multiprocessing import Pool
-import math, random, sys
+import random
 import pickle
 import argparse
 from functools import partial
 import torch
-import numpy
 
 from poly_hgraph import MolGraph, common_atom_vocab, PairVocab
 import rdkit
 
 def to_numpy(tensors):
-    convert = lambda x : x.numpy() if type(x) is torch.Tensor else x
+    def convert(x):
+        return x.numpy() if type(x) is torch.Tensor else x
     a,b,c = tensors
     b = [convert(x) for x in b[0]], [convert(x) for x in b[1]]
     return a, b, c

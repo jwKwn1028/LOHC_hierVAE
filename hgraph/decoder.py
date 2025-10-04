@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-import rdkit.Chem as Chem
+# import rdkit.Chem as Chem
 import torch.nn.functional as F
-from hgraph.nnutils import *
+from hgraph.nnutils import index_select_ND, get_accuracy, zip_tensors, get_accuracy_bin, get_accuracy_sym, hier_topk
 from hgraph.encoder import IncHierMPNEncoder
 from hgraph.mol_graph import MolGraph
 from hgraph.inc_graph import IncTree, IncGraph
@@ -87,7 +87,8 @@ class HierMPNDecoder(nn.Module):
         new_bonds = [] #new bonds are the subgraph induced by new_atoms
         for zid in new_atoms:
             for nid in graph_batch[zid]:
-                if nid not in new_atom_set: continue
+                if nid not in new_atom_set: 
+                    continue
                 new_bonds.append( graph_batch[zid][nid]['mess_idx'] )
 
         new_bond_index = hgraph.emask.new_tensor(new_bonds)
@@ -223,7 +224,8 @@ class HierMPNDecoder(nn.Module):
                     mess_idx = tree_batch[xid][yid]['mess_idx']
                     new_atoms.extend( tree_batch.nodes[yid]['cluster'] ) #NOTE: regardless of tlab = 0 or 1
 
-                if tlab == 0: continue
+                if tlab == 0: 
+                    continue
 
                 cls = tree_batch.nodes[yid]['smiles']
                 clab, ilab = self.vocab[ tree_batch.nodes[yid]['label'] ]
@@ -326,7 +328,8 @@ class HierMPNDecoder(nn.Module):
         
         for t in range(max_decode_step):
             batch_list = [ bid for bid in range(batch_size) if len(stack[bid]) > 0 ]
-            if len(batch_list) == 0: break
+            if len(batch_list) == 0: 
+                break
 
             batch_idx = batch_idx.new_tensor(batch_list)
             cur_tree_nodes = [stack[bid][-1] for bid in batch_list]
@@ -380,7 +383,8 @@ class HierMPNDecoder(nn.Module):
                 success = False
                 cls_beam = range(beam) if greedy else shuf_idx[i]
                 for kk in cls_beam: #try until one is chemically valid
-                    if success: break
+                    if success: 
+                        break
                     clab, ilab = cls_topk[i][kk], icls_topk[i][kk]
                     node_feature = batch_idx.new_tensor( [clab, ilab] )
                     tree_batch.set_node_feature(new_node, node_feature)

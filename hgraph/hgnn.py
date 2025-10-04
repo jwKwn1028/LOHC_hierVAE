@@ -1,16 +1,17 @@
 import torch
 import torch.nn as nn
-import rdkit.Chem as Chem
-import torch.nn.functional as F
-from hgraph.mol_graph import MolGraph
+# import rdkit.Chem as Chem
+# import torch.nn.functional as F
+# from hgraph.mol_graph import MolGraph
 from hgraph.encoder import HierMPNEncoder
 from hgraph.decoder import HierMPNDecoder
-from hgraph.nnutils import *
+from hgraph.nnutils import stack_pad_tensor
 
 
 def make_cuda(tensors):
     tree_tensors, graph_tensors = tensors
-    make_tensor = lambda x: x if type(x) is torch.Tensor else torch.tensor(x)
+    def make_tensor(x):
+        return x if type(x) is torch.Tensor else torch.tensor(x)
     tree_tensors = [make_tensor(x).cuda().long() for x in tree_tensors[:-1]] + [tree_tensors[-1]]
     graph_tensors = [make_tensor(x).cuda().long() for x in graph_tensors[:-1]] + [graph_tensors[-1]]
     return tree_tensors, graph_tensors

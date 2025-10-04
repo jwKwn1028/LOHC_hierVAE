@@ -1,14 +1,15 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.optim.lr_scheduler as lr_scheduler
+# import torch.optim.lr_scheduler as lr_scheduler
 from torch.utils.data import DataLoader
 
 import rdkit
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 
-import math, random, sys
+import math
+import random
 import numpy as np
 import argparse
 import os
@@ -18,11 +19,13 @@ import hgraph
 from hgraph import HierVAE, common_atom_vocab, PairVocab
 from chemprop.train import predict
 from chemprop.data import MoleculeDataset, MoleculeDataLoader
-from chemprop.data.utils import get_data, get_data_from_smiles
-from chemprop.utils import load_args, load_checkpoint, load_scalers
+from chemprop.data.utils import get_data_from_smiles
+from chemprop.utils import load_checkpoint, load_scalers
 
-param_norm = lambda m: math.sqrt(sum([p.norm().item() ** 2 for p in m.parameters()]))
-grad_norm = lambda m: math.sqrt(sum([p.grad.norm().item() ** 2 for p in m.parameters() if p.grad is not None]))
+def param_norm(m):
+    return math.sqrt(sum([p.norm().item() ** 2 for p in m.parameters()]))
+def grad_norm(m):
+    return math.sqrt(sum([p.grad.norm().item() ** 2 for p in m.parameters() if p.grad is not None]))
 
 
 class Chemprop(object):

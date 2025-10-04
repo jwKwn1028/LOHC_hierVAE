@@ -2,13 +2,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
 
-import math, random, sys
+import math
+import sys
 import numpy as np
 import argparse
 
-from poly_hgraph import *
+from poly_hgraph import common_atom_vocab, MolGraph, PairVocab, HierVAE, DataFolder
 import rdkit
 
 lg = rdkit.RDLogger.logger() 
@@ -64,8 +65,10 @@ print("Model #Params: %dK" % (sum([x.nelement() for x in model.parameters()]) / 
 optimizer = optim.Adam(model.parameters(), lr=args.lr)
 scheduler = lr_scheduler.ExponentialLR(optimizer, args.anneal_rate)
 
-param_norm = lambda m: math.sqrt(sum([p.norm().item() ** 2 for p in m.parameters()]))
-grad_norm = lambda m: math.sqrt(sum([p.grad.norm().item() ** 2 for p in m.parameters() if p.grad is not None]))
+def param_norm(m):
+    return math.sqrt(sum([p.norm().item() ** 2 for p in m.parameters()]))
+def grad_norm(m):
+    return math.sqrt(sum([p.grad.norm().item() ** 2 for p in m.parameters() if p.grad is not None]))
 
 total_step = 0
 beta = args.beta
