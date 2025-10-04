@@ -2,8 +2,8 @@ import torch
 import rdkit
 import rdkit.Chem as Chem
 import networkx as nx
-from hgraph.chemutils import *
-from hgraph.nnutils import *
+from hgraph.chemutils import get_mol, get_smiles, get_inter_label, set_atommap, get_assm_cands
+from hgraph.nnutils import create_pad_tensor
 
 add = lambda x,y : x + y if type(x) is int else (x[0] + y, x[1] + y)
 
@@ -55,7 +55,8 @@ class MolGraph(object):
         clusters = self.clusters
         graph = nx.empty_graph( len(clusters) )
         for atom, nei_cls in enumerate(self.atom_cls):
-            if len(nei_cls) <= 1: continue
+            if len(nei_cls) <= 1: 
+                continue
             bonds = [c for c in nei_cls if len(clusters[c]) == 2]
             rings = [c for c in nei_cls if len(clusters[c]) > 4] #need to change to 2
 
@@ -207,7 +208,8 @@ class MolGraph(object):
             for u, v in G.edges:
                 eid = edge_dict[(u, v)]
                 for w in G.predecessors(u):
-                    if w == v: continue
+                    if w == v: 
+                        continue
                     bgraph[eid].append( edge_dict[(w, u)] )
 
         fnode[0] = fnode[1]

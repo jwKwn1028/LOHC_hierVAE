@@ -22,7 +22,7 @@ def get_mol(smiles):
         if mol is None:
             return None
         # test kekulization quickly
-        Chem.Kekulize(mol, clearAromaticFlags=True)
+        Chem.Kekulize(mol)
         return mol
     except Exception:
         return None
@@ -61,7 +61,8 @@ def get_leaves(mol):
     leaf_rings = []
     for r in rings:
         inters = [c for c in clusters if r != c and len(r & c) > 0]
-        if len(inters) > 1: continue
+        if len(inters) > 1: 
+            continue
         nodes = [i for i in r if mol.GetAtomWithIdx(i).GetDegree() == 2]
         leaf_rings.append( max(nodes) )
 
@@ -94,7 +95,8 @@ def get_sub_mol(mol, sub_atoms):
     for idx in sub_atoms:
         a = mol.GetAtomWithIdx(idx)
         for b in a.GetNeighbors():
-            if b.GetIdx() not in sub_atoms: continue
+            if b.GetIdx() not in sub_atoms: 
+                continue
             bond = mol.GetBondBetweenAtoms(a.GetIdx(), b.GetIdx())
             bt = bond.GetBondType()
             if a.GetIdx() < b.GetIdx(): #each bond is enumerated twice
@@ -176,7 +178,9 @@ def get_anchor_smiles(mol, anchor, idxfunc=idxfunc):
     copy_mol = Chem.Mol(mol)
     for a in copy_mol.GetAtoms():
         idx = idxfunc(a)
-        if idx == anchor: a.SetAtomMapNum(1)
-        else: a.SetAtomMapNum(0)
+        if idx == anchor: 
+            a.SetAtomMapNum(1)
+        else: 
+            a.SetAtomMapNum(0)
 
     return get_smiles(copy_mol)

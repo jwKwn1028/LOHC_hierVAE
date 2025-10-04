@@ -1,7 +1,7 @@
 import sys
 import argparse 
 from collections import Counter
-from poly_hgraph import *
+from poly_hgraph import MolGraph, chemutils
 from rdkit import Chem
 from multiprocessing import Pool
 
@@ -10,18 +10,20 @@ def process(data):
     for line in data:
         s = line.strip("\r\n ")
         hmol = MolGraph(s)
-        for node,attr in hmol.mol_tree.nodes(data=True):
+        for _, attr in hmol.mol_tree.nodes(data=True):
             smiles = attr['smiles']
             vocab.add( attr['label'] )
-            for i,s in attr['inter_label']:
+            for _, s in attr['inter_label']:
                 vocab.add( (smiles, s) )
     return vocab
+
+# node, i variable is unused.
 
 def fragment_process(data):
     counter = Counter()
     for smiles in data:
-        mol = get_mol(smiles)
-        fragments = find_fragments(mol)
+        mol = chemutils.get_mol(smiles)
+        fragments = chemutils.find_fragments(mol)
         for fsmiles, _ in fragments:
             counter[fsmiles] += 1
     return counter

@@ -1,6 +1,6 @@
 import rdkit
 import rdkit.Chem as Chem
-from collections import defaultdict
+# from collections import defaultdict
 
 lg = rdkit.RDLogger.logger() 
 lg.setLevel(rdkit.RDLogger.CRITICAL)
@@ -14,7 +14,8 @@ def set_atommap(mol, num=0):
 
 def get_mol(smiles):
     mol = Chem.MolFromSmiles(smiles)
-    if mol is not None: Chem.Kekulize(mol)
+    if mol is not None: 
+        Chem.Kekulize(mol)
     return mol
 
 def get_smiles(mol):
@@ -41,7 +42,8 @@ def find_fragments(mol):
         atom.SetAtomMapNum(atom.GetIdx())
 
     for bond in mol.GetBonds():
-        if bond.IsInRing(): continue
+        if bond.IsInRing(): 
+            continue
         a1 = bond.GetBeginAtom()
         a2 = bond.GetEndAtom()
 
@@ -90,7 +92,8 @@ def get_leaves(mol):
     leaf_rings = []
     for r in rings:
         inters = [c for c in clusters if r != c and len(r & c) > 0]
-        if len(inters) > 1: continue
+        if len(inters) > 1: 
+            continue
         nodes = [i for i in r if mol.GetAtomWithIdx(i).GetDegree() == 2]
         leaf_rings.append( max(nodes) )
 
@@ -123,7 +126,8 @@ def get_sub_mol(mol, sub_atoms):
     for idx in sub_atoms:
         a = mol.GetAtomWithIdx(idx)
         for b in a.GetNeighbors():
-            if b.GetIdx() not in sub_atoms: continue
+            if b.GetIdx() not in sub_atoms:
+                continue
             bond = mol.GetBondBetweenAtoms(a.GetIdx(), b.GetIdx())
             bt = bond.GetBondType()
             if a.GetIdx() < b.GetIdx(): #each bond is enumerated twice
@@ -212,7 +216,9 @@ def get_anchor_smiles(mol, anchor, idxfunc=idxfunc):
     copy_mol = Chem.Mol(mol)
     for a in copy_mol.GetAtoms():
         idx = idxfunc(a)
-        if idx == anchor: a.SetAtomMapNum(1)
-        else: a.SetAtomMapNum(0)
+        if idx == anchor: 
+            a.SetAtomMapNum(1)
+        else: 
+            a.SetAtomMapNum(0)
 
     return get_smiles(copy_mol)
