@@ -6,7 +6,8 @@ from torch.utils.data import DataLoader
 
 import rdkit
 from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem
+from rdkit.Chem import rdMolDescriptors
+# from rdkit.Chem import AllChem
 
 import math
 import random
@@ -127,7 +128,7 @@ if __name__ == "__main__":
     score_func = Chemprop(args.chemprop_model)
     good_smiles = train_smiles
     train_mol = [Chem.MolFromSmiles(s) for s in train_smiles]
-    train_fps = [AllChem.GetMorganFingerprintAsBitVect(x, 2, 2048) for x in train_mol]
+    train_fps = [rdMolDescriptors.GetMorganFingerprintAsBitVect(x, 2, 2048) for x in train_mol]
 
     model = HierVAE(args).cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -176,7 +177,7 @@ if __name__ == "__main__":
         good_entries = []
         for s, p in outputs:
             mol = Chem.MolFromSmiles(s)
-            fps = AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)
+            fps = rdMolDescriptors.GetMorganFingerprintAsBitVect(mol, 2, 2048)
             sims = np.array(DataStructs.BulkTanimotoSimilarity(fps, train_fps))
             good_entries.append((s, p, sims.max()))
             if args.min_similarity <= sims.max() <= args.max_similarity:

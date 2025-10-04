@@ -235,7 +235,7 @@ class HierMPNDecoder(nn.Module):
                 
                 inter_label = tree_batch.nodes[yid]['inter_label']
                 inter_label = [ (pos, self.vocab[(cls, icls)][1]) for pos,icls in inter_label ]
-                inter_size = self.vocab.get_inter_size(ilab)
+                _ = self.vocab.get_inter_size(ilab) # inter_size was not used here
 
                 if len(tree_batch.nodes[xid]['cluster']) > 2: #uncertainty occurs only when previous cluster is a ring
                     nth_child = tree_batch[yid][xid]['label'] #must be yid -> xid (graph order labeling is different from tree)

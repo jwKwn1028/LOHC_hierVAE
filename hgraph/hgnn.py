@@ -88,7 +88,7 @@ class HierVGNN(nn.Module):
     def translate(self, tensors, num_decode, enum_root, greedy=True):
         tensors = make_cuda(tensors)
         root_vecs, tree_vecs, graph_vecs = self.encode(tensors)
-        all_smiles = []
+        _ = [] # local variable all_smiles is not used
         if enum_root:
             repeat = num_decode // len(root_vecs)
             modulo = num_decode % len(root_vecs)

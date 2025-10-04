@@ -1,11 +1,12 @@
 import rdkit
 import rdkit.Chem as Chem
-from collections import defaultdict
+# from collections import defaultdict
 
 lg = rdkit.RDLogger.logger() 
 lg.setLevel(rdkit.RDLogger.CRITICAL)
 
-idxfunc = lambda a : a.GetAtomMapNum() - 1
+def idxfunc(a):
+    return a.GetAtomMapNum() - 1
 
 def set_atommap(mol, num=0):
     for atom in mol.GetAtoms():
