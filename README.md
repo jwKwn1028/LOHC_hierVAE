@@ -9,7 +9,7 @@ First install the dependencies via conda:
  * RDKit >= 2019.03
  * numpy
  * Python >= 3.6
-
+ * Levenshtein
 And then run `pip install .`. Additional dependency for property-guided finetuning:
  * Chemprop >= 1.2.0
 
