@@ -1,3 +1,4 @@
+import logging
 import sys
 from props import similarity
 
@@ -9,4 +10,5 @@ for line in sys.stdin:
     try:
         print(x, y, sim2D, drd2(y))
     except Exception as e:
+        logging.warning(f"drd2_score script failed for {e}")
         print(x, y, sim2D, 0.0)

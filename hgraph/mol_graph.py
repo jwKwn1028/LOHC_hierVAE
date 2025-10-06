@@ -161,7 +161,8 @@ class MolGraph(object):
         for v,attr in tree_batchG.nodes(data=True):
             bid = attr['batch_id']
             offset = graph_scope[bid][0]
-            tree_batchG.nodes[v]['inter_label'] = inter_label = [(x + offset, y) for x,y in attr['inter_label']]
+            tree_batchG.nodes[v]['inter_label'] = _ = [(x + offset, y) for x,y in attr['inter_label']]
+            # inter_label variable in between was assigned, never used
             tree_batchG.nodes[v]['cluster'] = cls = [x + offset for x in attr['cluster']]
             tree_batchG.nodes[v]['assm_cands'] = [add(x, offset) for x in attr['assm_cands']]
             cgraph[v, :len(cls)] = torch.IntTensor(cls)

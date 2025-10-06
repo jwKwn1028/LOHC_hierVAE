@@ -1,3 +1,4 @@
+import logging
 import rdkit
 import rdkit.Chem as Chem
 # from collections import defaultdict
@@ -35,7 +36,8 @@ def sanitize(mol, kekulize=True):
     try:
         smiles = get_smiles(mol) if kekulize else Chem.MolToSmiles(mol)
         mol = get_mol(smiles) if kekulize else Chem.MolFromSmiles(smiles)
-    except:
+    except Exception as e:
+        logging.warning(f"saninitzation faile for molecule {e}")
         mol = None
     return mol
 
