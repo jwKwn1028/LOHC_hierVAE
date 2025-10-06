@@ -6,4 +6,4 @@ results*
 model.*
 splits/
 *.pkl
-ckpt/
+hiervae/
