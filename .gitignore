@@ -8,3 +8,4 @@ splits/
 *.pkl
 ckpt/
 hiervae/
+get_vocabtest

@@ -20,6 +20,8 @@ def process(data):
                 vocab.add( (smiles, s) )
     return vocab
 
+# node, i was not used hear -> _
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()

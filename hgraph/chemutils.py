@@ -24,7 +24,9 @@ def get_mol(smiles):
         if mol is None:
             return None
         # test kekulization quickly
-        Chem.Kekulize(mol)
+        Chem.Kekulize(mol, clearAromaticFlags=True)
+        # clearAromaticFlags=True -> saved as loose / False -> saved as default name
+        # setting as True seems to reproduce result from repo -> presumed to be new rdkit feature
         return mol
     except Exception:
         return None
