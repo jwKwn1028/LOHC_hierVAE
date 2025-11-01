@@ -14,22 +14,12 @@ def set_atommap(mol, num=0):
         atom.SetAtomMapNum(num)
     return mol
 
-# def get_mol(smiles):
-#     mol = Chem.MolFromSmiles(smiles)
-#     if mol is not None: Chem.Kekulize(mol, clearAromaticFlags=True)
-#     return mol
 def get_mol(smiles):
-    try:
-        mol = Chem.MolFromSmiles(smiles)
-        if mol is None:
-            return None
-        # test kekulization quickly
-        Chem.Kekulize(mol, clearAromaticFlags=True)
-        # clearAromaticFlags=True -> saved as loose / False -> saved as default name
-        # setting as True seems to reproduce result from repo -> presumed to be new rdkit feature
-        return mol
-    except Exception:
-        return None
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is not None: 
+        Chem.Kekulize(mol, clearAromaticFlags=True) 
+    return mol
+
 
 def get_smiles(mol):
     return Chem.MolToSmiles(mol, kekuleSmiles=True)
