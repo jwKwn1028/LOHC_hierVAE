@@ -16,11 +16,10 @@ def process(data):
         for _, attr in hmol.mol_tree.nodes(data=True):
             smiles = attr['smiles']
             vocab.add( attr['label'] )
-            for _,s in attr['inter_label']:
+            for _, s in attr['inter_label']:
                 vocab.add( (smiles, s) )
     return vocab
 
-# node, i was not used hear -> _
 
 if __name__ == "__main__":
 

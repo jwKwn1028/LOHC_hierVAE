@@ -4,7 +4,7 @@ import torch
 class Vocab(object):
 
     def __init__(self, smiles_list):
-        self.vocab = [x for x in smiles_list] #copy
+        self.vocab = smiles_list.copy()
         self.vmap = {x:i for i,x in enumerate(self.vocab)}
         
     def __getitem__(self, smiles):
