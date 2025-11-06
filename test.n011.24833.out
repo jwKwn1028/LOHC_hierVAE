@@ -3968,3 +3968,14 @@ learning rate: 0.000000
 [186000] Beta: 0.200, KL: 0.17, loss: 0.053, Word: 0.96, 0.99, Topo: 0.99, Assm: 0.70, PNorm: 227.34, GNorm: 5.00
 learning rate: 0.000000
 [186100] Beta: 0.200, KL: 0.17, loss: 0.053, Word: 0.92, 0.98, Topo: 1.00, Assm: 0.81, PNorm: 227.34, GNorm: 5.00
+[188300] Beta: 0.200, KL: 0.18, loss: 0.051, Word: 0.94, 0.98, Topo: 1.00, Assm: 0.77, PNorm: 224.96, GNorm: 5.00
+[188400] Beta: 0.200, KL: 0.18, loss: 0.055, Word: 0.95, 0.98, Topo: 0.99, Assm: 0.76, PNorm: 224.96, GNorm: 5.00
+[188500] Beta: 0.200, KL: 0.17, loss: 0.054, Word: 0.95, 0.99, Topo: 0.99, Assm: 0.67, PNorm: 224.96, GNorm: 5.00
+[188600] Beta: 0.200, KL: 0.18, loss: 0.054, Word: 0.94, 0.99, Topo: 0.99, Assm: 0.89, PNorm: 224.96, GNorm: 5.00
+[188700] Beta: 0.200, KL: 0.17, loss: 0.051, Word: 0.97, 0.99, Topo: 1.00, Assm: 0.76, PNorm: 224.96, GNorm: 5.00
+[188800] Beta: 0.200, KL: 0.17, loss: 0.053, Word: 0.93, 0.99, Topo: 1.00, Assm: 0.76, PNorm: 224.96, GNorm: 5.00
+[188900] Beta: 0.200, KL: 0.17, loss: 0.050, Word: 0.98, 0.98, Topo: 1.00, Assm: 0.67, PNorm: 224.96, GNorm: 5.00
+[189000] Beta: 0.200, KL: 0.18, loss: 0.046, Word: 0.97, 1.00, Topo: 1.00, Assm: 0.81, PNorm: 224.96, GNorm: 5.00
+[189100] Beta: 0.200, KL: 0.18, loss: 0.050, Word: 0.96, 0.98, Topo: 1.00, Assm: 0.72, PNorm: 224.96, GNorm: 5.00
+[189200] Beta: 0.200, KL: 0.17, loss: 0.052, Word: 0.93, 0.99, Topo: 0.99, Assm: 0.84, PNorm: 224.96, GNorm: 5.00
+[189300] Beta: 0.200, KL: 0.17, loss: 0.046, Word: 0.98, 0.99, Topo: 1.00, Assm: 0.77, PNorm: 224.96, GNorm: 5.00

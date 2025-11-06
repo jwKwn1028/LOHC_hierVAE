@@ -11,3 +11,5 @@ hiervae/
 get_vocabtest
 logs/
 processed/
+slurms/
+hierVAEflow.md
