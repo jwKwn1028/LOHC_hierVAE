@@ -97,13 +97,30 @@ for epoch in range(args.epoch):
         nn.utils.clip_grad_norm_(model.parameters(), args.clip_norm)
         optimizer.step()
 
-        meters = meters + np.array([kl_div, loss.item(), wacc * 100, iacc * 100, tacc * 100, sacc * 100])
+        # meters = meters + np.array([kl_div, loss.item(), wacc * 100, iacc * 100, tacc * 100, sacc * 100])
+        meters_t = torch.zeros(6, device=loss.device, dtype=torch.float32)
 
+        # each step
+        meters_t = meters_t + torch.tensor([
+            kl_div,
+            loss,
+            wacc * 100,
+            iacc * 100,
+            tacc * 100,
+            sacc * 100,
+        ], device=loss.device, dtype=torch.float32)
+
+        # if total_step % args.print_iter == 0:
+        #     meters /= args.print_iter
+        #     print("[%d] Beta: %.3f, KL: %.2f, loss: %.3f, Word: %.2f, %.2f, Topo: %.2f, Assm: %.2f, PNorm: %.2f, GNorm: %.2f" % (total_step, beta, meters[0], meters[1], meters[2], meters[3], meters[4], meters[5], param_norm(model), grad_norm(model)))
+        #     sys.stdout.flush()
+        #     meters *= 0
         if total_step % args.print_iter == 0:
-            meters /= args.print_iter
-            print("[%d] Beta: %.3f, KL: %.2f, loss: %.3f, Word: %.2f, %.2f, Topo: %.2f, Assm: %.2f, PNorm: %.2f, GNorm: %.2f" % (total_step, beta, meters[0], meters[1], meters[2], meters[3], meters[4], meters[5], param_norm(model), grad_norm(model)))
-            sys.stdout.flush()
-            meters *= 0
+            meters_np = (meters_t / args.print_iter).detach().cpu().numpy()
+            print("[{}] Beta: {:.3f}, KL: {:.2f}, loss: {:.3f}, Word: {:.2f}, {:.2f}, Topo: {:.2f}, Assm: {:.2f}, PNorm: {:.2f}, GNorm: {:.2f}".format(
+                total_step, beta, meters_np[0], meters_np[1], meters_np[2], meters_np[3], meters_np[4], meters_np[5],
+                param_norm(model), grad_norm(model)))
+            meters_t.zero_()
         
         if total_step % args.save_iter == 0:
             ckpt = (model.state_dict(), optimizer.state_dict(), total_step, beta)

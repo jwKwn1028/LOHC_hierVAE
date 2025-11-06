@@ -9,3 +9,5 @@ splits/
 ckpt/
 hiervae/
 get_vocabtest
+logs/
+processed/
