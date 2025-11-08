@@ -1,11 +1,11 @@
+import os
 import torch
 from torch import Tensor
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import torch_geometric
-from torch_geometric.data import Batch
-from torch_geometric.nn import MessagePassing, global_add_pool
+from torch_geometric.nn import MessagePassing, GraphNorm, global_add_pool, GATv2Conv
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 import torchvision as tv
@@ -14,8 +14,6 @@ import time
 import pandas as pd
 import numpy as np
 import random
-from rdkit import Chem
-from rdkit.Chem import Draw
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -24,12 +22,15 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from func_gnn import smiles_to_graph
 from torch_geometric.typing import (
     Adj,
+    NoneType,
     OptPairTensor,
     OptTensor,
-    Size
+    PairTensor,
+    Size,
+    SparseTensor
 )
-from typing import Optional, Union
-
+import typing
+from typing import Callable, Optional, Union, Tuple
 
 torch.set_float32_matmul_precision('high')
 
@@ -121,6 +122,7 @@ class MultiModalDataset(Dataset):
     def __init__(self, 
                  dataframe,
                  tokenizer,
+                 img_data_dir,
                  max_length: int = 200,
                  img_dim = 256,
                  ):
@@ -130,7 +132,7 @@ class MultiModalDataset(Dataset):
         self.img_transform = tv.transforms.ToTensor()
         self.smiles = dataframe.iloc[:,0].tolist()
         self.target = dataframe.iloc[:,1].tolist()
-        #self.img_data_dir = img_data_dir
+        self.img_data_dir = img_data_dir
 
     def __len__(self):
         return len(self.smiles)
@@ -140,7 +142,6 @@ class MultiModalDataset(Dataset):
         val_i = self.target[idx]
         
         graph = smiles_to_graph(smi_i,val_i)
-        graph.smiles = smi_i
         if graph is None or graph.x.size(0) == 0 or graph.edge_index.size(1) == 0:
             return None
         
@@ -157,17 +158,16 @@ class MultiModalDataset(Dataset):
             attention_mask = tokenized["attention_mask"].squeeze(0)
         except Exception:
             return None
-    
-        # Smiles -> img
-        mol = Chem.MolFromSmiles(smi_i)
-        if mol is None:
-            raise ValueError("Invalid SMILES for image.")
         
-        img = Draw.MolToImage(mol, size=(self.img_dim, self.img_dim))
-        img = self.img_transform(img)
+        tmp_img = torch.load(os.path.join(self.img_data_dir, f'{idx}.pt'))
+        
+        if tmp_img['smiles'] == smi_i:
+            img = tmp_img['img']
+        else:
+            raise ValueError("Not match with img index. Check your mol image path.")
 
         target = torch.tensor(val_i, dtype=torch.float)
-        
+
         return {
             'graph': graph,
             'input_ids': input_ids,
@@ -393,14 +393,9 @@ class MM_Model(pl.LightningModule):
 
 def collate_fn(batch):
     batch = [b for b in batch if b is not None]
-
     if len(batch) == 0:
-        #raise RuntimeError("모든 SMILES가 처리 실패했습니다. SMILES를 확인하세요.")
         return None
-
     graphs = [b['graph'] for b in batch]
-    batch_graph = Batch.from_data_list(graphs)
-    batch_graph.smiles = [g.smiles for g in graphs]
     return {
         'graph': torch_geometric.data.Batch.from_data_list(graphs),
         'input_ids': torch.stack([b['input_ids'] for b in batch]),

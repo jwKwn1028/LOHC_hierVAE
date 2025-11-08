@@ -7,7 +7,6 @@ import torch.optim.lr_scheduler as lr_scheduler
 import rdkit
 import math
 import random
-import sys
 import numpy as np
 import argparse
 import os
