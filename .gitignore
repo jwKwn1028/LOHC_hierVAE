@@ -16,3 +16,4 @@ hierVAEflow.md
 *.err
 *.out
 data/
+vocab/

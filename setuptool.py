@@ -46,7 +46,7 @@ def tensorize_pair(mol_batch, vocab):
 
 def tensorize_cond(mol_batch, vocab):
     x, y, cond = zip(*mol_batch)
-    cond = [map(int, c.split(',')) for c in cond]
+    cond = [list(map(int, c.split(','))) for c in cond]
     cond = numpy.array(cond)
     x = MolGraph.tensorize(x, vocab, common_atom_vocab)
     y = MolGraph.tensorize(y, vocab, common_atom_vocab)
@@ -56,60 +56,60 @@ def tensorize_cond(mol_batch, vocab):
 # ---------------------------
 # VOCAB COMMAND
 # ---------------------------
-def _process_vocab(data):
-    """
-    Build a set of 2-tuples for the vocabulary.
-    We only add pairs (smiles, inter_label_value) to avoid mixed types.
-    """
-    vocab = set()
-    for line in data:
+def _process_vocab_pairs(lines):
+    pairs = set()
+    for line in lines:
         s = line.strip("\r\n ")
         if not s:
             continue
         try:
             hmol = MolGraph(s)
         except Exception as e:
-            print(
-                f"Skipping problematic SMILES-rdkit_KekulizeException: {s} ({e})",
-                file=sys.stderr,
-            )
+            print(f"Skipping problematic SMILES-rdkit_KekulizeException: {s} ({e})", file=sys.stderr)
             continue
 
         for _, attr in hmol.mol_tree.nodes(data=True):
-            smiles = attr["smiles"]
-            # If you also want the standalone label, make it a pair like below:
-            # vocab.add((smiles, attr["label"]))
-            for _, s2 in attr["inter_label"]:
-                vocab.add((smiles, s2))
-    return vocab
+            smiles = attr['smiles']
+            pairs.add( attr['label'] )
+            for _, s in attr['inter_label']:
+                pairs.add( (smiles, s) )
+    return pairs
+
+
 
 
 def cmd_vocab(args):
     in_path = Path(args.input).expanduser().resolve()
     outdir: Path = args.outdir.expanduser().resolve()
     outdir.mkdir(parents=True, exist_ok=True)
-    out_path = outdir / in_path.name  # e.g., vocab/data.txt
+    # pick your preferred naming; here: <stem>_vocab<suffix>
+    out_path = outdir / f"{in_path.stem}_vocab{in_path.suffix}"
 
-    # Read first two tokens per line (as in your original)
+    # Use first two tokens per line (same as original)
     with in_path.open("r", encoding="utf-8") as f:
-        mols = [tok for line in f for tok in line.split()[:2]]
+        mols = [mol for line in f for mol in line.split()[:2]]
     mols = list(set(mols))
 
     ncpu = max(int(args.ncpu), 1)
     batch_size = len(mols) // ncpu + 1
-    batches = chunked(mols, batch_size)
+    batches = [mols[i:i+batch_size] for i in range(0, len(mols), batch_size)]
 
     with Pool(ncpu) as pool:
-        vocab_sets = pool.map(_process_vocab, batches)
+        results = pool.map(_process_vocab_pairs, batches)
 
-    vocab = set().union(*vocab_sets)
+    # merge & coerce to (str, str) (already done in worker, but safe)
+    pairs = set()
+    for P in results:
+        pairs |= {(str(a), str(b)) for (a, b) in P}
 
-    # Write vocab lines as "x y"
+    # Write exactly two columns per line (original script’s output form)
     with out_path.open("w", encoding="utf-8") as fh:
-        for x, y in sorted(vocab):
+        for x, y in sorted(pairs, key=lambda t: (str(t[0]), str(t[1]))):
             fh.write(f"{x} {y}\n")
 
-    print(f"[vocab] Wrote {len(vocab)} pairs to {out_path}", file=sys.stderr)
+
+    print(f"[vocab] wrote {len(pairs)} pairs → {out_path}", file=sys.stderr)
+
 
 
 # ---------------------------
@@ -127,7 +127,8 @@ def cmd_tensorize(args):
 
     # Load vocab file (expects space-separated pairs per line)
     with vocab_path.open("r", encoding="utf-8") as f:
-        vocab_rows = [x.strip("\r\n ").split() for x in f if x.strip()]
+        vocab_rows = [r.split() for r in (x.strip("\r\n ") for x in f) if r]
+    vocab_rows = [r for r in vocab_rows if len(r) == 2]  # <-- keep only (x, y)
     pvocab = PairVocab(vocab_rows, cuda=False)
 
     ncpu = max(int(args.ncpu), 1)
@@ -202,10 +203,10 @@ def build_parser():
     pt.add_argument("--train", required=True, type=Path, help="Training data file")
     pt.add_argument("--vocab", required=True, type=Path, help="Vocab file")
     pt.add_argument("--batch_size", type=int, default=32, help="Batch size")
-    pt.add_argument("--mode", type=str, default="pair",
+    pt.add_argument("--mode", type=str, default="single",
                     choices=["pair", "cond_pair", "single"], help="Tensorization mode")
     pt.add_argument("--ncpu", type=int, default=8, help="CPU workers")
-    pt.add_argument("--outdir", type=Path, default=Path("."), help="Output dir for tensors (default: .)")
+    pt.add_argument("--outdir", type=Path, default=Path("processed"), help="Output dir for tensors (default: ./processed)")
     pt.set_defaults(func=cmd_tensorize)
 
     return p

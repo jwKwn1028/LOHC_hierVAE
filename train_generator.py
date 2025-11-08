@@ -109,11 +109,6 @@ for epoch in range(args.epoch):
             sacc * 100,
         ], device=loss.device, dtype=torch.float32)
 
-        # if total_step % args.print_iter == 0:
-        #     meters /= args.print_iter
-        #     print("[%d] Beta: %.3f, KL: %.2f, loss: %.3f, Word: %.2f, %.2f, Topo: %.2f, Assm: %.2f, PNorm: %.2f, GNorm: %.2f" % (total_step, beta, meters[0], meters[1], meters[2], meters[3], meters[4], meters[5], param_norm(model), grad_norm(model)))
-        #     sys.stdout.flush()
-        #     meters *= 0
         if total_step % args.print_iter == 0:
             meters_np = (meters_t / args.print_iter).detach().cpu().numpy()
             print("[{}] Beta: {:.3f}, KL: {:.2f}, loss: {:.3f}, Word: {:.2f}, {:.2f}, Topo: {:.2f}, Assm: {:.2f}, PNorm: {:.2f}, GNorm: {:.2f}".format(
