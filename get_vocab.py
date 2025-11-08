@@ -1,7 +1,6 @@
 import sys
 import argparse 
 from hgraph.mol_graph import MolGraph
-# from rdkit import Chem
 from multiprocessing import Pool
 
 def process(data):

@@ -8,10 +8,11 @@ splits/
 *.pkl
 ckpt/
 hiervae/
-get_vocabtest
+get_vocabtest/
 logs/
 processed/
 slurms/
 hierVAEflow.md
 *.err
 *.out
+data/

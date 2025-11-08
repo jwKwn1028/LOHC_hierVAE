@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import sys
 from rdkit import Chem
-# from hgraph.mol_graph import MolGraph
+from hgraph.mol_graph import MolGraph
 from tqdm import tqdm
 
 def is_kekulizable(smi):
@@ -44,13 +44,13 @@ def preprocess_inputcsv(filename, df):
     invalid_smiles.extend(df.loc[~common_mask, "smiles"].tolist())
     df = df[common_mask].copy()
 
-    # for smi in tqdm(df["smiles"], desc="MolGraph filtering"):
-    #     try:
-    #         _ = MolGraph(smi)
-    #         valid_smiles.append(smi)
-    #     except Exception as e:
-    #         invalid_smiles.append(smi)
-    #         print(f"❌ Error on SMILES: {smi} | {e}")
+    for smi in tqdm(df["smiles"], desc="MolGraph filtering"):
+        try:
+            _ = MolGraph(smi)
+            valid_smiles.append(smi)
+        except Exception as e:
+            invalid_smiles.append(smi)
+            print(f"❌ Error on SMILES: {smi} | {e}")
 
     # Save
     pd.DataFrame(valid_smiles,   columns=["smiles"]).to_csv(f"{out_dir}/train.txt",   index=False, header=False)

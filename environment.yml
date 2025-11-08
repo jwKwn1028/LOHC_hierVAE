@@ -1,9 +1,9 @@
-name: hiervae
+name: hiervaeLOHC
 channels:
-  - conda-forge
-  - nvidia
-  - pytorch
   - pyg
+  - pytorch
+  - nvidia
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
