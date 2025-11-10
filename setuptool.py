@@ -179,37 +179,95 @@ def cmd_tensorize(args):
             pickle.dump(sub_data, f, pickle.HIGHEST_PROTOCOL)
         print(f"[tensorize] Wrote {out_path}", file=sys.stderr)
 
+def cmd_train():
+    pass
+
+def cmd_finetune():
+    pass
 
 # ---------------------------
 # Main CLI
 # ---------------------------
 def build_parser():
-    p = argparse.ArgumentParser(
-        description="Chemistry data utilities: vocab builder and tensorizer"
-    )
+    p = argparse.ArgumentParser(description="Chemistry data utilities")
     sub = p.add_subparsers(dest="command", required=True)
 
-    # vocab subcommand
-    pv = sub.add_parser("vocab", help="Build vocab file from input data")
-    pv.add_argument("--input", "-i", type=Path, required=True,
-                    help="Path to input data file (text)")
-    pv.add_argument("--outdir", type=Path, default=Path("vocab"),
-                    help="Directory to write vocab file (default: ./vocab)")
-    pv.add_argument("--ncpu", type=int, default=1, help="CPU workers (default: 1)")
+    # shared
+    common_parent = argparse.ArgumentParser(add_help=False)
+    common_parent.add_argument('--seed', type=int, default=7)
+    common_parent.add_argument('--rnn_type', type=str, choices=['LSTM','GRU'], default='LSTM')
+    common_parent.add_argument('--hidden_size', type=int, default=250)
+    common_parent.add_argument('--embed_size', type=int, default=250)
+    common_parent.add_argument('--latent_size', type=int, default=32)
+    common_parent.add_argument('--dropout', type=float, default=0.0)
+    common_parent.add_argument('--lr', type=float, default=1e-3)
+    common_parent.add_argument('--clip_norm', type=float, default=5.0)
+    common_parent.add_argument('--device', type=str, choices=['cuda','cpu'], default='cuda')
+    common_parent.add_argument('--deterministic', action='store_true')
+
+    # vocab
+    pv = sub.add_parser("vocab", help="Build vocab file", add_help=True)
+    pv.add_argument("--input", "-i", type=Path, required=True)
+    pv.add_argument("--outdir", type=Path, default=Path("vocab"))
+    pv.add_argument("--ncpu", type=int, default=1)
     pv.set_defaults(func=cmd_vocab)
 
-    # tensorize subcommand
-    pt = sub.add_parser("tensorize", help="Tensorize dataset using a vocab")
-    pt.add_argument("--train", required=True, type=Path, help="Training data file")
-    pt.add_argument("--vocab", required=True, type=Path, help="Vocab file")
-    pt.add_argument("--batch_size", type=int, default=32, help="Batch size")
-    pt.add_argument("--mode", type=str, default="single",
-                    choices=["pair", "cond_pair", "single"], help="Tensorization mode")
-    pt.add_argument("--ncpu", type=int, default=8, help="CPU workers")
-    pt.add_argument("--outdir", type=Path, default=Path("processed"), help="Output dir for tensors (default: ./processed)")
+    # tensorize
+    pt = sub.add_parser("tensorize", help="Tensorize dataset", add_help=True)
+    pt.add_argument("--train", required=True, type=Path)
+    pt.add_argument("--vocab", required=True, type=Path)
+    pt.add_argument("--batch_size", type=int, default=32)
+    pt.add_argument("--mode", type=str, default="single", choices=["pair","cond_pair","single"])
+    pt.add_argument("--ncpu", type=int, default=8)
+    pt.add_argument("--outdir", type=Path, default=Path("processed"))
     pt.set_defaults(func=cmd_tensorize)
 
+    # train
+    ptr = sub.add_parser("train", parents=[common_parent], help="Train model")
+    ptr.add_argument("--train", required=True, type=Path)
+    ptr.add_argument("--vocab", required=True, type=Path)
+    ptr.add_argument("--atom_vocab", type=str, default='common')
+    ptr.add_argument("--save_dir", required=True, type=Path)
+    ptr.add_argument("--load_model", type=Path, default=None)
+    ptr.add_argument("--batch_size", type=int, default=50)
+    ptr.add_argument("--depthT", type=int, default=15)
+    ptr.add_argument("--depthG", type=int, default=15)
+    ptr.add_argument("--diterT", type=int, default=1)
+    ptr.add_argument("--diterG", type=int, default=3)
+    ptr.add_argument("--step_beta", type=float, default=0.001)
+    ptr.add_argument("--max_beta", type=float, default=1.0)
+    ptr.add_argument("--warmup", type=int, default=10000)
+    ptr.add_argument("--kl_anneal_iter", type=int, default=2000)
+    ptr.add_argument("--epoch", type=int, default=20)
+    ptr.add_argument("--anneal_rate", type=float, default=0.9)
+    ptr.add_argument("--anneal_iter", type=int, default=25000)
+    ptr.add_argument("--print_iter", type=int, default=50)
+    ptr.add_argument("--save_iter", type=int, default=5000)
+    ptr.set_defaults(func=cmd_train)   # implement
+
+    # finetune
+    pf = sub.add_parser("finetune", parents=[common_parent], help="Finetune model")
+    pf.add_argument("--train", required=True, type=Path)
+    pf.add_argument("--vocab", required=True, type=Path)
+    pf.add_argument("--atom_vocab", type=str, default='common')
+    pf.add_argument("--save_dir", required=True, type=Path)
+    pf.add_argument("--generative_model", required=True, type=Path)
+    pf.add_argument("--chemprop_model", required=True, type=Path)
+    pf.add_argument("--batch_size", type=int, default=20)
+    pf.add_argument("--depthT", type=int, default=15)
+    pf.add_argument("--depthG", type=int, default=15)
+    pf.add_argument("--diterT", type=int, default=1)
+    pf.add_argument("--diterG", type=int, default=3)
+    pf.add_argument("--epoch", type=int, default=10)
+    pf.add_argument("--inner_epoch", type=int, default=10)
+    pf.add_argument("--threshold", type=float, default=0.3)
+    pf.add_argument("--min_similarity", type=float, default=0.1)
+    pf.add_argument("--max_similarity", type=float, default=0.5)
+    pf.add_argument("--nsample", type=int, default=10000)
+    pf.set_defaults(func=cmd_finetune)  # implement
+
     return p
+
 
 
 def main():
