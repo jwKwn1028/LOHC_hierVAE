@@ -40,7 +40,7 @@ args.vocab = PairVocab(vocab)
 
 model = HierVAE(args).cuda()
 
-model.load_state_dict(torch.load(args.model)[0])
+model.load_state_dict(torch.load(args.model)[0], strict=False)
 model.eval()
 
 torch.manual_seed(args.seed)

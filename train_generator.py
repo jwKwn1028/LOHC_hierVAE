@@ -118,7 +118,7 @@ for epoch in range(args.epoch):
         
         if total_step % args.save_iter == 0:
             ckpt = (model.state_dict(), optimizer.state_dict(), total_step, beta)
-            torch.save(ckpt, os.path.join(args.save_dir, f"model.ckpt.{total_step}"))
+            torch.save(ckpt, os.path.join(args.save_dir, f"{total_step}model.ckpt"))
 
         if total_step % args.anneal_iter == 0:
             scheduler.step()
