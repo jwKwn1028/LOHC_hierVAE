@@ -509,7 +509,7 @@ if __name__ == "__main__":
     ap.add_argument("--smiles", required=True, help = "smiles.txt")
     ap.add_argument("--out", required=True, help="results.csv")
     ap.add_argument("--props", required=True, help='comma list of property')
-    ap.add_argument("--ckpt_map", required=True, help="JSON mapping prop->ckpt")
+    ap.add_argument("--ckpt_map", required=False, default="{}", help="JSON mapping prop->ckpt")
     args = ap.parse_args()
     
     props = [p.strip() for p in args.props.split(",") if p.strip()]
