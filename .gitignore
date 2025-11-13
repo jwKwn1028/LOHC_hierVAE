@@ -17,4 +17,3 @@ hierVAEflow.md
 *.out
 data/
 vocab/
-predictor/

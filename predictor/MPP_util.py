@@ -4,6 +4,8 @@ import pandas as pd
 from tqdm import tqdm
 import torch
 import ast
+import argparse
+import json
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 from rdkit import Chem
@@ -11,6 +13,13 @@ from hgraph.mol_graph import MolGraph
 from typing import List, Tuple, Dict, Optional
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../Checkpoint/')))
 from MPP import MM_Model, MultiModalDataset, collate_fn
+
+DEFAULT_CKPT_MAP = {
+    "esol": "ckpt/esolv0.ckpt",
+    "freesolv": "ckpt/freesolvv0.ckpt",
+    "lipo": "ckpt/lipov0.ckpt",
+}
+
 
 def canonicalize_smiles(smiles_list):
     canon_set = set()
@@ -90,10 +99,12 @@ class MoleculeDatasetWithProperty(torch.utils.data.Dataset):
             for _, attr in hmol.mol_tree.nodes(data=True):
                 smiles = attr['smiles']
                 if attr['label'] not in vocab.vmap:
+                    #self.vocab.vmap
                     print(f"[WARN] label '{attr['label']}' not in vocab for {smi}")
                     ok = False
                 for _, s in attr['inter_label']:
                     if (smiles, s) not in vocab.vmap:
+                        #self.vocab.vmap
                         print(f"[WARN] inter_label ({smiles}, {s}) not in vocab for {smi}")
                         ok = False
             if ok:
@@ -127,8 +138,9 @@ class MoleculeDatasetWithProperty(torch.utils.data.Dataset):
 
 class MPPWrapper:
     def __init__(self, checkpoint_path):
+        self.device  = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = MM_Model.load_from_checkpoint(checkpoint_path)
-        self.model.eval().cuda()
+        self.model.eval().to(self.device)
 
     def predict(self, smiles_list):
         tokenizer = AutoTokenizer.from_pretrained("DeepChem/ChemBERTa-77M-MLM")
@@ -137,21 +149,19 @@ class MPPWrapper:
         df = pd.DataFrame({'smiles': smiles_list, 'target': dummy_targets})
 
         dataset = MultiModalDataset(df, tokenizer=tokenizer, max_length = 200)
-        dataloader = DataLoader(dataset, batch_size=256, collate_fn=collate_fn, num_workers=2, pin_memory=True, persistent_workers=True)
+        dataloader = DataLoader(dataset, batch_size=256, collate_fn=collate_fn, num_workers=2, pin_memory=torch.cuda.is_available(), persistent_workers=torch.cuda.is_available())
 
         all_preds, valid_smiles = [], []
 
-        self.model.eval()
-        device = next(self.model.parameters()).device
 
         with torch.no_grad():
             for batch in dataloader:
                 if batch is None:
                     continue
                 for k in ['graph', 'input_ids', 'attention_mask', 'img']:
-                    batch[k] = batch[k].to(device)
+                    batch[k] = batch[k].to(self.device)
                 out = self.model(batch)
-                all_preds.extend(out.cpu().numpy())
+                all_preds.extend(torch.as_tensor(out).detach().cpu().flatten().tolist())
                 valid_smiles.extend(batch['graph'].smiles)
 
         return list(zip(valid_smiles, all_preds))
@@ -193,15 +203,52 @@ def normalize_scores(pairs, k_expected=None):
         out.append((smi, vec))
     return out
 
+def load_smiles(txt_path, *, canonicalize=False, keep_longest_fragment=False, verbose=True):
+    valid = []
+    invalid = []
+    total = 0
+    
+    with open(txt_path, "r") as f:
+        for lineno, raw in enumerate(f, start=1):
+            s = raw.strip()
+            if not s:
+                continue
+            total += 1
+            if keep_longest_fragment and "." in s:
+                parts = [p.strip() for p in s.split(".") if p.strip()]
+                if parts:
+                    s = max(parts, key=len)
+            m = Chem.MolFromSmiles(s)
+            if m is None:
+                 invalid.append((lineno, raw.rstrpi("\n")))
+                 continue
+            
+            if canonicalize:
+                s = Chem.MolToSmiles(m)
+            valid.append(s)
+    if verbose:
+        n_bad = len(invalid)
+        pct_bad = (100.0 * n_bad / total) if total > 0 else 0.0
+        print(f"[load_smiles] Read {total} lines (non-empty). "
+              f"Valid: {total - n_bad}, Invalid: {n_bad} "
+              f"({pct_bad:.2f}% not SMILES).")
+        if n_bad > 0:
+            print("[load_smiles] Invalid entries (line_no: text):")
+            for ln, bad in invalid:
+                print(f"  {ln}: {bad}")
+
+    return valid
+            
+
 class MultiMPPWrapper:
     def __init__(self, ckpt_paths):
         self.models = []
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         for p in ckpt_paths:
             m = MM_Model.load_from_checkpoint(p)
-            m.eval().cuda()
+            m.eval().to(self.device)
             self.models.append(m)
         self.tokenizer = AutoTokenizer.from_pretrained("DeepChem/ChemBERTa-77M-MLM")
-    
     @torch.no_grad()
     def predict_raw(self, smiles_list):
         
@@ -209,9 +256,9 @@ class MultiMPPWrapper:
         df = pd.DataFrame({'smiles': smiles_list, 'target': dummy_targets})
 
         dataset = MultiModalDataset(df, tokenizer=self.tokenizer, max_length = 200)
-        dataloader = DataLoader(dataset, batch_size=256, collate_fn=collate_fn, num_workers=2, pin_memory=True, persistent_workers=True)
+        dataloader = DataLoader(dataset, batch_size=256, collate_fn=collate_fn, num_workers=2, pin_memory=torch.cuda.is_available(), persistent_workers=torch.cuda.is_available())
         
-        device = next(self.models[0].parameters()).device
+
         all_valid_smiles = []
         all_preds_by_model = [ [] for _ in self.models ]
 
@@ -219,10 +266,11 @@ class MultiMPPWrapper:
             if batch is None:
                 continue
             for k in ['graph', 'input_ids', 'attention_mask', 'img']:
-                batch[k] = batch[k].to(device)
+                batch[k] = batch[k].to(self.device)
             for i, m in enumerate(self.models):
                 out = m(batch)
-                all_preds_by_model[i].extend(out.detach().cpu().numpy().reshape(-1).tolist())
+                # all_preds_by_model[i].extend(out.detach().cpu().numpy().reshape(-1).tolist())
+                all_preds_by_model[i].extend(torch.as_tensor(out).detach().cpu().flatten().tolist())
             all_valid_smiles.extend(batch['graph'].smiles)
         
         preds_matrix = list(zip(*all_preds_by_model))
@@ -350,18 +398,22 @@ def _clean_and_map(smiles_list):
     idx_map: list[Optional[int]] = []
     for s in smiles_list:
         if not isinstance(s, str):
-            idx_map.append(None); continue
+            idx_map.append(None)
+            continue
         s = s.strip()
         if not s:
-            idx_map.append(None); continue
+            idx_map.append(None)
+            continue
         if '.' in s:
             parts = [p.strip() for p in s.split('.') if p.strip()]
             if not parts:
-                idx_map.append(None); continue
+                idx_map.append(None)
+                continue
             s = max(parts, key=len)
         m = Chem.MolFromSmiles(s)
         if m is None:
-            idx_map.append(None); continue
+            idx_map.append(None)
+            continue
         cs = Chem.MolToSmiles(m)  # canonical
         idx_map.append(len(cleaned))
         cleaned.append(cs)
@@ -452,3 +504,26 @@ class HybridScorer:
             out.append((smi, vec))
         return out
     '''
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--smiles", required=True, help = "smiles.txt")
+    ap.add_argument("--out", required=True, help="results.csv")
+    ap.add_argument("--props", required=True, help='comma list of property')
+    ap.add_argument("--ckpt_map", required=True, help="JSON mapping prop->ckpt")
+    args = ap.parse_args()
+    
+    props = [p.strip() for p in args.props.split(",") if p.strip()]
+    cli_ckpt_map = json.loads(args.ckpt_map)
+    ckpt_map = DEFAULT_CKPT_MAP.copy()
+    ckpt_map.update(cli_ckpt_map)
+    smiles = load_smiles(args.smiles)
+    scorer = HybridScorer(props, ckpt_map)
+    pairs = scorer.predict(smiles)
+
+    # Save: one column per prop (NaN if unavailable)
+    df = pd.DataFrame(
+        [(s, *vals) for s, vals in pairs],
+        columns=["smiles"] + props
+    )
+    df.to_csv(args.out, index=False)
+    print(f"Saved {len(df)} rows to {args.out}")

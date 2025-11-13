@@ -5,7 +5,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import torch_geometric
-from torch_geometric.nn import MessagePassing, GraphNorm, global_add_pool, GATv2Conv
+from torch_geometric.nn import MessagePassing, global_add_pool
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 import torchvision as tv
@@ -22,15 +22,11 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from func_gnn import smiles_to_graph
 from torch_geometric.typing import (
     Adj,
-    NoneType,
     OptPairTensor,
     OptTensor,
-    PairTensor,
-    Size,
-    SparseTensor
+    Size
 )
-import typing
-from typing import Callable, Optional, Union, Tuple
+from typing import Optional, Union
 
 torch.set_float32_matmul_precision('high')
 

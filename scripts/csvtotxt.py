@@ -5,7 +5,7 @@ def smiles_csv_txt(csv_path: str, out_path: str | None = None):
     csv_path = Path(csv_path)
     df = pd.read_csv(csv_path)
 
-    preferred = ["unsat_SMILE", "sat_SMILE", "SMILES"]
+    preferred = ["unsat_SMILE", "sat_SMILE", "SMILES", "smiles"]
     avail = {c.lower(): c for c in df.columns}
 
     target_col = None
@@ -33,5 +33,5 @@ def smiles_csv_txt(csv_path: str, out_path: str | None = None):
     return str(out_path)
 
 if __name__ == "__main__":
-    smiles_csv_txt("data/QM9/QM9-LOHC_new_molecules.csv", "data/QM9/QM9-LOHC_new_molecules.txt")
+    smiles_csv_txt("data/ccel/top7.csv", "data/ccel/top7.txt")
 
